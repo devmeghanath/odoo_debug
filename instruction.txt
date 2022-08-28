@@ -1,0 +1,39 @@
+
+3
+
+I made it work following the next steps:
+
+    Start containers with docker-compose up or docker run
+    Access your odoo container with root permissions using docker exec -it -u 0 "container name" /bin/bash
+    Install ptvsd pip3 install ptvsd
+    Update odoo addons/__init__.py file to enable ptvsd attachement,locate file in /usr/lib/python3/dist-packages/odoo/addons/__init__.py and add the following code at the end of the file:
+
+import ptvsd
+ptvsd.enable_attach(address=('0.0.0.0', 3000))
+
+ptvsd.wait_for_attach()
+
+    Exit container and restart using docker-compose restart or docker restart "container name"
+    Execute docker inspect "container name" and copy the IPAddress under the Networks section
+    Open visual studio and create the launch.json, paste the container ip under the host field and the port that was specified on the ptvsd attach method, ex. In my case the ip was 172.27.0.3
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "port": 3000,
+            "host": "172.27.0.3",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ]
+        }
+    ]
+}
+
+    Click on start Debugging and you should be able to see odoo logs on the Debug console
